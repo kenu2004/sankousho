@@ -1,0 +1,101 @@
+# 診断の質問と結果タイプ
+# - 各質問の yes / no に「タイプID: 点数」を書く。合計点が一番高いタイプが結果になる
+# - 同点のときは types に書いた順で先にあるほうを優先する
+# - 重みを変えたら `python scripts/build.py --check` で、全タイプに到達できるか確認する
+
+questions:
+  - text: ITの仕事や勉強をしたことがある？
+    yes: {kakomon: 3, sukkiri: 2, tettei: 1, sekachan: 1}
+    no: {ichiyasa: 3, hitotsu: 1, manga: 1, minna: 1}
+  - text: 試験日まで1か月を切っている？
+    yes: {sukkiri: 4, kakomon: 1, sekachan: 1, movie: 1}
+    no: {tettei: 1, ichiyasa: 1}
+  - text: 文字がぎっしりの本は苦手？
+    yes: {manga: 2, ichiyasa: 1, minna: 3, movie: 1}
+    no: {tettei: 1, kakomon: 1, sukkiri: 1}
+  - text: マンガなら最後まで読めそう？
+    yes: {manga: 5}
+    no: {}
+  - text: 本を読むより、動画を見るほうが頭に入る？
+    yes: {movie: 6}
+    no: {}
+  - text: 説明を読むより、まず問題を解いてみたい？
+    yes: {sekachan: 4, kakomon: 1}
+    no: {ichiyasa: 1, minna: 1, hitotsu: 1, tettei: 1}
+  - text: できれば1冊で全部すませたい？
+    yes: {ichiyasa: 2, minna: 2, sukkiri: 1, tettei: 1}
+    no: {hitotsu: 2, kakomon: 2, sekachan: 1}
+  - text: 勉強は通勤・休み時間など、細切れの時間になりそう？
+    yes: {hitotsu: 5, sekachan: 1, movie: 1}
+    no: {tettei: 1, ichiyasa: 1}
+  - text: ギリギリ合格より、高得点や次の資格（基本情報など）も狙いたい？
+    yes: {tettei: 4, ichiyasa: 1}
+    no: {sukkiri: 2, minna: 1}
+  - text: 同じ問題を何周も解いて覚えるのが得意？
+    yes: {kakomon: 3, sekachan: 2}
+    no: {minna: 2, manga: 1}
+
+types:
+  ichiyasa:
+    name: ゼロからていねい型
+    catch: 基礎の基礎から、1冊でじっくり
+    description: ITの知識がなくても、順番どおり読めば全体がつながるタイプ。定番の「教科書＋問題集」1冊を軸に、最後に過去問で仕上げるのがおすすめです。
+    main: ichiyasa
+    sub: perfect
+    sub_reason: 教科書を1周したら、最新の公開問題を収録した過去問題集で本番の形式に慣れましょう。
+  minna:
+    name: 読むだけでイメージ型
+    catch: カラー図解で、読みながら覚える
+    description: 文字だけの説明より、イラストや図があると一気にわかるタイプ。赤シートつきのカラー本で「読む→隠して確認」をくり返すのが合っています。
+    main: minna
+    sub: perfect
+    sub_reason: 仕上げは過去問。不正解の選択肢まで解説があるので、あいまいな用語をつぶせます。
+  manga:
+    name: マンガで楽しく型
+    catch: 物語で読めば、用語が頭に残る
+    description: 楽しくないと続かないタイプ。まずマンガで全体像をつかむと、カタカナ用語だらけの試験範囲がぐっと身近になります。
+    main: manga
+    sub: hitotsu_kakomon
+    sub_reason: マンガで全体像をつかんだら、頻出の過去問に絞った問題集で得点力をつけましょう。
+  hitotsu:
+    name: すきま時間コツコツ型
+    catch: 1テーマずつ、細切れでも前に進む
+    description: まとまった時間は取れないけれど、毎日少しずつなら続けられるタイプ。区切りやすい構成の本と、スマホで解ける過去問を組み合わせるのがおすすめです。
+    main: hitotsu
+    sub: hitotsu_kakomon
+    sub_reason: 同じシリーズの過去問題集なら、教科書と同じ流れで復習できます。
+  movie:
+    name: 動画で聞いて覚える型
+    catch: 解説を「聞いて」理解する
+    description: 文章を読むより、先生の説明を聞くほうがスッと入るタイプ。解説動画がついている参考書を選ぶと、独学でも授業を受けている感覚で進められます。
+    main: sukima
+    sub: mubista
+    sub_reason: もう少し動画で学びたいなら、参考書と授業動画がセットの「ムビスタ」もあります。
+  sekachan:
+    name: 問題から解く型
+    catch: まず解く。わからなければそこで覚える
+    description: 教科書を最初から読むのが退屈で、問題を解きながらのほうが覚えられるタイプ。問題集を主役にして、解説で知識を足していくやり方が合っています。
+    main: sekachan
+    sub: yokuderu
+    sub_reason: 2冊目は頻出事項だけに絞った問題集で、出るところを確実に。
+  sukkiri:
+    name: 短期集中・速習型
+    catch: 時間がないなら、出るところから
+    description: 試験まで時間がない、または効率重視のタイプ。重要用語から先に押さえる速習型の本で、短期間に1周するのがおすすめです。
+    main: sukkiri
+    sub: derutoko
+    sub_reason: 出るところに印がついた本と過去問アプリで、直前の追い込みに。
+  tettei:
+    name: 全部おさえる網羅型
+    catch: 範囲を漏れなく、しっかり理解
+    description: 合格ラインぎりぎりではなく、しっかり理解して高得点を取りたいタイプ。シラバスの用語をすべて扱う本なら、基本情報技術者など次の資格にもつながります。
+    main: tettei
+    sub: perfect
+    sub_reason: 知識が入ったら、過去問4年分と模擬問題で実戦力を確認しましょう。
+  kakomon:
+    name: 過去問で仕上げ型
+    catch: 経験を活かして、問題演習から
+    description: ITの基礎はある程度わかっているタイプ。教科書を最初から読むより、過去問を解いて弱い分野だけ補うほうが早く合格に届きます。
+    main: perfect
+    sub: derutoko
+    sub_reason: 弱い分野の確認には、出るところに絞ったフルカラーの教科書が便利です。

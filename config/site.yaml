@@ -1,0 +1,10 @@
+# サイト全体の設定
+title: ITパスポート参考書診断
+subtitle: YES/NOで10問。あなたに合う1冊が見つかる
+description: 参考書が多すぎて選べない人のための、ITパスポート参考書診断。10問のYES/NOに答えるだけで、勉強スタイルに合った2026年度版の参考書がわかります。
+# 公開URL（末尾スラッシュあり）。OGP・canonical・サイトマップに使う
+base_url: https://kenu2004.github.io/sankousho/
+# X のシェア文につけるハッシュタグ
+hashtags: [ITパスポート, 参考書診断]
+# Google アナリティクス（GA4）の測定ID。空なら読み込まない
+ga4_id: ""
