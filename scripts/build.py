@@ -128,7 +128,8 @@ def book_card(book: dict, info: dict, *, role: str, type_id: str) -> str:
     if info.get("review_count"):
         review = (f'<span class="review">★ {info["review_average"]:.1f}'
                   f'<small>（楽天ブックスのレビュー{info["review_count"]}件）</small></span>')
-    image = (f'<img src="{escape(info["image"])}" alt="{escape(book["title"])}の表紙" loading="{'eager' if role == 'main' else 'lazy'}" width="150">'
+    loading = "eager" if role == "main" else "lazy"  # 画面上部のメインの表紙はすぐ読み込む
+    image = (f'<img src="{escape(info["image"])}" alt="{escape(book["title"])}の表紙" loading="{loading}" width="150">'
              if info.get("image") else "")
     return f"""<article class="book book--{role}">
   <div class="book__cover">{image}</div>
