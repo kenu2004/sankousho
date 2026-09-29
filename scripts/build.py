@@ -14,6 +14,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from html import escape
 from pathlib import Path
+from urllib.parse import quote
 
 import yaml
 
@@ -100,44 +101,81 @@ def page(site: dict, *, title: str, description: str, path: str, body: str, dept
 <meta property="og:site_name" content="{escape(site['title'])}">
 {og_img}
 <meta name="twitter:card" content="summary">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="{FAVICON}">
+<script>document.documentElement.classList.add("js")</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700;800&family=Zen+Old+Mincho:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{root}assets/style.css">
 {extra_head}{ga}
 </head>
 <body>
-<header class="site-header"><a href="{root}" class="logo">📚 {escape(site['title'])}</a></header>
-<main>
+<header>
+  <div class="wrap header-inner">
+    <a class="logo" href="{root}">参考書診断<span class="logo-sub">ITパスポート</span></a>
+    <nav><a class="nav-link" href="{root}#types">タイプ一覧</a><a class="nav-cta" href="{root}">診断する</a></nav>
+  </div>
+  <div class="wrap"><div class="hikisen"></div><div class="hikisen"></div></div>
+</header>
+<main class="wrap">
 {body}
 </main>
-<footer class="site-footer">
-<p>当サイトは楽天アフィリエイトを利用しています（PR）。リンク先で購入されると、運営者に紹介料が入ることがあります。</p>
-<p>参考書の紹介文は出版社の商品説明をもとにまとめたものです。価格・在庫は{{updated}}時点の楽天ブックスの情報で、現在の価格はリンク先でご確認ください。</p>
-<p class="credit"><!-- Rakuten Web Service Center --><a href="https://developers.rakuten.com/" target="_blank" rel="noopener">Supported by Rakuten Developers</a></p>
+<footer>
+  <div class="wrap">
+    <div class="hikisen thin"></div>
+    <div class="footer-inner">
+      <p>当サイトは楽天アフィリエイトを利用しています（PR）。リンク先で購入されると、運営者に紹介料が入ることがあります。</p>
+      <p>参考書の紹介文は、出版社の商品説明をもとにまとめたものです。価格・在庫は{{updated}}時点の楽天ブックスの情報です。最新の価格はリンク先でご確認ください。</p>
+      <p class="credit"><!-- Rakuten Web Service Center --><a href="https://developers.rakuten.com/" target="_blank" rel="noopener">Supported by Rakuten Developers</a></p>
+    </div>
+  </div>
 </footer>
+<script src="{root}assets/app.js" defer></script>
 </body>
 </html>
 """
 
 
+KANJI = "一二三四五六七八九十"
+FAVICON = "data:image/svg+xml," + quote(
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
+    "<path d='M6,8 L94,5 L96,93 L8,96 Z' fill='#C73E3A'/>"
+    "<text x='50' y='72' font-family='serif' font-size='62' font-weight='700' fill='#F5F1E8' text-anchor='middle'>診</text></svg>")
+
+# 手で引いたような波線（見出しの下線）
+WAVE = ('<svg viewBox="0 0 320 16" preserveAspectRatio="none" aria-hidden="true"><path d="M2,7 C 20,2 34,12 54,7 '
+        'C 74,2 88,12 108,7 C 128,2 142,12 162,7 C 182,2 196,12 216,7 C 236,2 250,12 270,7 C 288,3 300,11 316,6"/></svg>')
+
+
+def seal(chars: str) -> str:
+    """朱肉で押したハンコ。2文字を縦に並べる。"""
+    return f"""<svg class="seal" viewBox="0 0 120 120" aria-hidden="true">
+  <path d="M9,11 L111,7 L115,111 L11,115 Z" fill="#C73E3A"/>
+  <rect x="17" y="17" width="86" height="86" fill="none" stroke="#F5F1E8" stroke-width="2" opacity=".8"/>
+  <text x="60" y="50" font-family="Shippori Mincho, serif" font-size="32" font-weight="700" fill="#F5F1E8" text-anchor="middle">{chars[0]}</text>
+  <text x="60" y="90" font-family="Shippori Mincho, serif" font-size="32" font-weight="700" fill="#F5F1E8" text-anchor="middle">{chars[1]}</text>
+</svg>"""
+
+
 def book_card(book: dict, info: dict, *, role: str, type_id: str) -> str:
-    points = "".join(f"<li>{escape(p)}</li>" for p in book["points"])
+    points = "".join(f'<li><span class="kanji-num">{KANJI[i]}</span><p>{escape(p)}</p></li>'
+                     for i, p in enumerate(book["points"]))
     review = ""
     if info.get("review_count"):
-        review = (f'<span class="review">★ {info["review_average"]:.1f}'
-                  f'<small>（楽天ブックスのレビュー{info["review_count"]}件）</small></span>')
+        review = (f'<p class="book-review">楽天ブックスのレビュー　<span class="stars">★</span> '
+                  f'{info["review_average"]:.1f}（{info["review_count"]}件）</p>')
     loading = "eager" if role == "main" else "lazy"  # 画面上部のメインの表紙はすぐ読み込む
     image = (f'<img src="{escape(info["image"])}" alt="{escape(book["title"])}の表紙" loading="{loading}" width="150">'
              if info.get("image") else "")
     return f"""<article class="book book--{role}">
-  <div class="book__cover">{image}</div>
-  <div class="book__body">
-    <h3 class="book__title">{escape(book['title'])}</h3>
-    <p class="book__meta">{escape(book['publisher'])}　<span class="price">{info['price']:,}円</span>{review}</p>
-    <ul class="book__points">{points}</ul>
-    <a class="btn btn--buy" href="{escape(info['url'])}" target="_blank" rel="nofollow sponsored noopener"
+  <div class="book-cover">{image}</div>
+  <div class="book-body">
+    <p class="book-publisher">{escape(book['publisher'])}</p>
+    <h3 class="book-title">{escape(book['title'])}</h3>
+    <p class="book-price">{info['price']:,}<span>円（税込）</span></p>
+    {review}
+    <ul class="book-points">{points}</ul>
+    <a class="btn-buy" href="{escape(info['url'])}" target="_blank" rel="nofollow sponsored noopener"
        data-book="{escape(type_id)}:{escape(role)}">楽天ブックスで見る</a>
   </div>
 </article>"""
@@ -155,10 +193,20 @@ def build(site: dict, quiz: dict, books: dict, data: dict) -> None:
     d = datetime.fromisoformat(fetched).astimezone(JST) if fetched else datetime.now(JST)
     updated = f"{d.year}年{d.month}月{d.day}日"
     types = quiz["types"]
-    type_links = lambda depth, current=None: "".join(
-        f'<li><a href="{"../" * depth}result/{tid}/"{" aria-current=page" if tid == current else ""}>'
-        f'{escape(t["name"])}<small>{escape(t["catch"])}</small></a></li>'
-        for tid, t in types.items())
+    n_types, n_questions = len(types), len(quiz["questions"])
+
+    def type_rows(depth: int, current: str | None = None) -> str:
+        rows = []
+        for i, (tid, t) in enumerate(types.items()):
+            here = '<span class="type-here">いまのタイプ</span>' if tid == current else ""
+            rows.append(f"""<a class="type-row reveal" href="{"../" * depth}result/{tid}/">
+  <span class="type-num">{KANJI[i]}</span>
+  <span class="type-body"><span class="type-name">{escape(t["name"])}{here}</span><span class="type-catch">{escape(t["catch"])}</span></span>
+  <span class="type-arrow" aria-hidden="true">→</span>
+</a>
+<div class="hikisen thin"></div>""")
+        return "\n".join(rows)
+
     pages = [""]
 
     # トップ（診断）
@@ -166,29 +214,42 @@ def build(site: dict, quiz: dict, books: dict, data: dict) -> None:
         "questions": [{"text": q["text"], "yes": q.get("yes") or {}, "no": q.get("no") or {}} for q in quiz["questions"]],
         "order": list(types),
     }, ensure_ascii=False)
+    dots = "".join("<li></li>" for _ in quiz["questions"])
     body = f"""<section class="hero" id="intro">
-  <p class="hero__eyebrow">2026年度版 ITパスポート</p>
-  <h1>{escape(site['subtitle']).replace("。", "。<br>")}</h1>
-  <p>参考書が多すぎて選べない人へ。勉強のクセに合わせて、{len(types)}タイプから<strong>メインの1冊</strong>と<strong>仕上げの1冊</strong>を提案します。</p>
-  <button class="btn btn--start" id="start" type="button">診断をはじめる</button>
-  <p class="hero__note">所要時間 約1分・登録不要</p>
+  <div class="hero-inner reveal">
+    {seal("診断")}
+    <p class="kicker">IT Passport — 2026</p>
+    <p class="hero-lead">参考書が多すぎて、選べない人へ</p>
+    <h1><span class="line">あなたに合う参考書を、</span><span class="line waved">{n_questions}の問いで。{WAVE}</span></h1>
+    <p class="subcopy">「はい」「いいえ」で答えるだけ。勉強のクセに合わせて、{n_types}つのタイプから<span class="ten">主役の一冊</span>と<span class="ten">仕上げの一冊</span>をおすすめします。所要時間はおよそ一分、登録は要りません。</p>
+    <div class="hero-ctas">
+      <button class="btn-stamp" id="start" type="button">診断をはじめる</button>
+      <a class="btn-text" href="#types">{n_types}つのタイプを見る</a>
+    </div>
+  </div>
 </section>
 <section class="quiz" id="quiz" hidden>
-  <div class="progress"><div class="progress__bar" id="bar"></div></div>
-  <p class="quiz__count" id="count"></p>
-  <h2 class="quiz__q" id="question"></h2>
-  <div class="quiz__answers">
-    <button class="btn btn--yes" type="button" data-answer="yes">YES</button>
-    <button class="btn btn--no" type="button" data-answer="no">NO</button>
+  <div class="quiz-frame">
+    <div class="quiz-head">
+      <p class="kicker">Question</p>
+      <p class="quiz-count"><span id="num"></span><span class="quiz-total">／全{n_questions}問</span></p>
+    </div>
+    <ol class="dots" id="dots" aria-hidden="true">{dots}</ol>
+    <div class="hikisen thin"></div>
+    <h2 class="quiz-q" id="question" aria-live="polite"></h2>
+    <div class="quiz-answers">
+      <button class="btn-stamp btn-answer" type="button" data-answer="yes">はい<small>Yes</small></button>
+      <button class="btn-stamp btn-answer" type="button" data-answer="no">いいえ<small>No</small></button>
+    </div>
+    <button class="btn-text quiz-back" id="back" type="button">ひとつ前の問いに戻る</button>
   </div>
-  <button class="quiz__back" id="back" type="button">← ひとつ前に戻る</button>
 </section>
-<section class="types">
-  <h2>診断でわかる{len(types)}つのタイプ</h2>
-  <ul class="type-list">{type_links(0)}</ul>
+<section class="block" id="types">
+  <div class="section-head reveal"><p class="kicker">Types</p><h2>診断でわかる、{n_types}つのタイプ</h2></div>
+  <div class="hikisen thin"></div>
+  {type_rows(0)}
 </section>
-<script id="quiz-data" type="application/json">{quiz_json}</script>
-<script src="assets/app.js" defer></script>"""
+<script id="quiz-data" type="application/json">{quiz_json}</script>"""
     (DIST / "index.html").write_text(
         page(site, title=f"{site['title']}｜{site['subtitle']}", description=site["description"],
              path="", body=body, depth=0).replace("{updated}", updated), encoding="utf-8")
@@ -199,27 +260,33 @@ def build(site: dict, quiz: dict, books: dict, data: dict) -> None:
         url = site["base_url"] + f"result/{tid}/"
         share_text = f"私は「{t['name']}」でした！\nおすすめは『{main['title']}』\n#{' #'.join(site['hashtags'])}\n"
         body = f"""<section class="result">
-  <p class="pr">PR</p>
-  <p class="result__label">あなたは…</p>
-  <h1 class="result__name">{escape(t['name'])}</h1>
-  <p class="result__catch">{escape(t['catch'])}</p>
-  <p class="result__desc">{escape(t['description'])}</p>
-  <h2 class="section-title">メインの1冊</h2>
-  {book_card(main, data[t['main']], role="main", type_id=tid)}
-  <h2 class="section-title">あわせて使うなら</h2>
-  <p class="sub-reason">{escape(t['sub_reason'])}</p>
-  {book_card(sub, data[t['sub']], role="sub", type_id=tid)}
-  <div class="result__actions">
-    <a class="btn btn--share" target="_blank" rel="noopener"
-       href="https://x.com/intent/post?text={_q(share_text)}&url={_q(url)}">結果をXでシェア</a>
-    <a class="btn btn--retry" href="../../">もう一度診断する</a>
+  <div class="result-head reveal">
+    {seal("推薦")}
+    <p class="kicker">Result <span class="pr">PR</span></p>
+    <p class="result-label">あなたは</p>
+    <h1 class="result-name"><span class="waved">{escape(t['name'])}{WAVE}</span></h1>
+    <p class="result-catch">{escape(t['catch'])}</p>
+    <p class="result-desc">{escape(t['description'])}</p>
+  </div>
+  <div class="section-head reveal"><p class="kicker">Main</p><h2>主役の一冊</h2></div>
+  <div class="obi reveal">{book_card(main, data[t['main']], role="main", type_id=tid)}</div>
+  <div class="section-head reveal"><p class="kicker">Finish</p><h2>仕上げに、もう一冊</h2>
+    <p class="sub-reason">{escape(t['sub_reason'])}</p></div>
+  <div class="sub-frame reveal">{book_card(sub, data[t['sub']], role="sub", type_id=tid)}</div>
+  <div class="cta-frame reveal">
+    <p class="cta-lead">結果を、だれかに。</p>
+    <div class="hero-ctas">
+      <a class="btn-stamp" target="_blank" rel="noopener"
+         href="https://x.com/intent/post?text={_q(share_text)}&url={_q(url)}">Xでシェアする</a>
+      <a class="btn-text" href="../../">もう一度診断する</a>
+    </div>
   </div>
 </section>
-<section class="types">
-  <h2>ほかのタイプも見る</h2>
-  <ul class="type-list">{type_links(2, tid)}</ul>
-</section>
-<script src="../../assets/app.js" defer></script>"""
+<section class="block" id="types">
+  <div class="section-head reveal"><p class="kicker">Types</p><h2>ほかのタイプも見る</h2></div>
+  <div class="hikisen thin"></div>
+  {type_rows(2, tid)}
+</section>"""
         out = DIST / "result" / tid
         out.mkdir(parents=True)
         (out / "index.html").write_text(
@@ -239,7 +306,6 @@ def build(site: dict, quiz: dict, books: dict, data: dict) -> None:
 
 
 def _q(s: str) -> str:
-    from urllib.parse import quote
     return quote(s, safe="")
 
 
