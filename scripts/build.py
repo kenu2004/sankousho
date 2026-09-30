@@ -79,8 +79,10 @@ def page(site: dict, *, title: str, description: str, path: str, body: str, dept
          og_image: str = "", extra_head: str = "") -> str:
     root = "../" * depth
     url = site["base_url"] + path
-    ga = ""
+    ga = analytics_note = ""
     if site.get("ga4_id"):
+        analytics_note = ("<p>アクセス解析のため、Googleアナリティクス（Cookie）を利用しています。"
+                          "集めるデータは匿名で、個人を特定するものではありません。</p>")
         gid = escape(site["ga4_id"])
         ga = (f'<script async src="https://www.googletagmanager.com/gtag/js?id={gid}"></script>'
               f"<script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments)}}"
@@ -126,6 +128,7 @@ def page(site: dict, *, title: str, description: str, path: str, body: str, dept
     <div class="footer-inner">
       <p>当サイトは楽天アフィリエイトを利用しています（PR）。リンク先で購入されると、運営者に紹介料が入ることがあります。</p>
       <p>参考書の紹介文は、出版社の商品説明をもとにまとめたものです。価格・在庫は{{updated}}時点の楽天ブックスの情報です。最新の価格はリンク先でご確認ください。</p>
+      {analytics_note}
       <p class="credit"><!-- Rakuten Web Service Center --><a href="https://developers.rakuten.com/" target="_blank" rel="noopener">Supported by Rakuten Developers</a></p>
     </div>
   </div>
@@ -182,9 +185,11 @@ def book_card(book: dict, info: dict, *, role: str, type_id: str) -> str:
 
 
 def build(site: dict, quiz: dict, books: dict, data: dict) -> None:
-    if DIST.exists():
-        shutil.rmtree(DIST)
-    (DIST / "assets").mkdir(parents=True)
+    # dist/ 自体はプレビューサーバーや同期ソフトが掴んでいることがあるので、中身だけ消す
+    DIST.mkdir(exist_ok=True)
+    for child in DIST.iterdir():
+        shutil.rmtree(child) if child.is_dir() else child.unlink()
+    (DIST / "assets").mkdir()
     for f in (ROOT / "site" / "assets").iterdir():
         shutil.copy(f, DIST / "assets" / f.name)
     (DIST / ".nojekyll").write_text("")
