@@ -188,6 +188,9 @@ def build(site: dict, quiz: dict, books: dict, data: dict) -> None:
     for f in (ROOT / "site" / "assets").iterdir():
         shutil.copy(f, DIST / "assets" / f.name)
     (DIST / ".nojekyll").write_text("")
+    # Google Search Console の所有権確認ファイルはサイト直下に置く
+    for f in ROOT.glob("google*.html"):
+        shutil.copy(f, DIST / f.name)
 
     fetched = data.get("_fetched_at")
     d = datetime.fromisoformat(fetched).astimezone(JST) if fetched else datetime.now(JST)
